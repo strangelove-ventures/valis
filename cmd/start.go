@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/jtieri/atlas/internal/indexdebug"
+	"github.com/strangelove-ventures/atlas/internal/indexdebug"
 	"go.uber.org/zap"
 
-	"github.com/jtieri/atlas/indexer"
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/atlas/indexer"
 	lens "github.com/strangelove-ventures/lens/client"
 )
 

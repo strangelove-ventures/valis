@@ -8,7 +8,7 @@ builds:
   - id: "atlas"
     main: ./main.go
     ldflags:
-      - -X github.com/jtieri/atlas/cmd.Version={{ .Tag }}
+      - -X github.com/strangelove-ventures/atlas/cmd.Version={{ .Tag }}
     goos:
       - darwin
       - linux

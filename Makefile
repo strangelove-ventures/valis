@@ -1,6 +1,6 @@
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 
-LD_FLAGS = -X github.com/jtieri/atlas/cmd.Version=$(VERSION)
+LD_FLAGS = -X github.com/strangelove-ventures/atlas/cmd.Version=$(VERSION)
 
 BUILD_FLAGS := -ldflags '$(LD_FLAGS)'
 

@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	"github.com/jtieri/atlas/indexer"
+	"github.com/strangelove-ventures/atlas/indexer"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"go.uber.org/zap"
 )
