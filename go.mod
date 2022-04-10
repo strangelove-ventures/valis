@@ -1,4 +1,4 @@
-module github.com/jtieri/atlas
+module github.com/strangelove-ventures/atlas
 
 go 1.18
 

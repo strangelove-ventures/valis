@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jtieri/atlas/indexer"
+	"github.com/strangelove-ventures/atlas/indexer"
 )
 
 func (a *IBCTransfer) CreateTables(indexer *indexer.Indexer) error {

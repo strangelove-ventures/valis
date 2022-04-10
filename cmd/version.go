@@ -7,8 +7,8 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/jtieri/atlas/internal/indexdebug"
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/atlas/internal/indexdebug"
 	"gopkg.in/yaml.v3"
 )
 
