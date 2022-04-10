@@ -131,6 +131,6 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
-replace github.com/strangelove-ventures/lens => ../lens
+replace github.com/strangelove-ventures/lens => github.com/jtieri/lens v0.3.0-alpha1
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
