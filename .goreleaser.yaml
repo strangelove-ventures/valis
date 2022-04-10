@@ -1,0 +1,25 @@
+project_name: Atlas
+
+env:
+  # Require use of Go modules.
+  - GO111MODULE=on
+
+builds:
+  - id: "atlas"
+    main: ./main.go
+    ldflags:
+      - -X github.com/jtieri/atlas/cmd.Version={{ .Tag }}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+checksum:
+  name_template: SHA256SUMS-{{.Version}}.txt
+  algorithm: sha256
+
+release:
+  prerelease: auto
+  draft: true
