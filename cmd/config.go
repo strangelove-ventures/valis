@@ -249,7 +249,7 @@ func defaultConfig() []byte {
 			Port:     5432,
 			User:     "anon",
 			Password: "password123",
-			Name:     "atlas",
+			Name:     "valis",
 			SSLMode:  "disable",
 			Driver:   "postgres",
 		}}.MustYAML()

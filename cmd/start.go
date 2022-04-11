@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/strangelove-ventures/atlas/internal/indexdebug"
+	"github.com/strangelove-ventures/valis/internal/indexdebug"
 	"go.uber.org/zap"
 
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/atlas/indexer"
 	lens "github.com/strangelove-ventures/lens/client"
+	"github.com/strangelove-ventures/valis/indexer"
 )
 
 // startCmd starts the indexer on the specified chain.
@@ -80,7 +80,7 @@ $ %s st`, appName, appName)),
 			} else {
 				ln, err := net.Listen("tcp", debugAddr)
 				if err != nil {
-					a.Log.Error("Failed to listen on debug address. If you have another atlas process open, use --" + flagDebugAddr + " to pick a different address.")
+					a.Log.Error("Failed to listen on debug address. If you have another valis process open, use --" + flagDebugAddr + " to pick a different address.")
 					return fmt.Errorf("failed to listen on debug address %q: %w", debugAddr, err)
 				}
 				log := a.Log.With(zap.String("sys", "debughttp"))

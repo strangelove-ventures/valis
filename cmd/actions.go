@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/strangelove-ventures/atlas/indexer"
-	"github.com/strangelove-ventures/atlas/indexer/actions/ibc"
+	"github.com/strangelove-ventures/valis/indexer"
+	"github.com/strangelove-ventures/valis/indexer/actions/ibc"
 	"go.uber.org/zap"
 )
 

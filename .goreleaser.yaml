@@ -1,14 +1,14 @@
-project_name: Atlas
+project_name: valis
 
 env:
   # Require use of Go modules.
   - GO111MODULE=on
 
 builds:
-  - id: "atlas"
+  - id: "valis"
     main: ./main.go
     ldflags:
-      - -X github.com/strangelove-ventures/atlas/cmd.Version={{ .Tag }}
+      - -X github.com/strangelove-ventures/valis/cmd.Version={{ .Tag }}
     goos:
       - darwin
       - linux
