@@ -1,6 +1,6 @@
 package main
 
-import "github.com/strangelove-ventures/atlas/cmd"
+import "github.com/strangelove-ventures/valis/cmd"
 
 func main() {
 	cmd.Execute()

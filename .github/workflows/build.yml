@@ -22,8 +22,8 @@ jobs:
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
         shell: bash
 
-      # checkout atlas
-      - name: checkout atlas
+      # checkout valis
+      - name: checkout valis
         uses: actions/checkout@v2
 
       # setup cache
@@ -44,5 +44,5 @@ jobs:
       - name: upload binaries
         uses: actions/upload-artifact@v1
         with:
-          name: atlas
-          path: ./build/atlas
+          name: valis
+          path: ./build/valis

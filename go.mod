@@ -1,4 +1,4 @@
-module github.com/strangelove-ventures/atlas
+module github.com/strangelove-ventures/valis
 
 go 1.18
 

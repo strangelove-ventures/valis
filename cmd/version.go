@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/atlas/internal/indexdebug"
+	"github.com/strangelove-ventures/valis/internal/indexdebug"
 	"gopkg.in/yaml.v3"
 )
 

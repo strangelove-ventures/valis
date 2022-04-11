@@ -44,7 +44,7 @@ func NewIndexer(log *zap.Logger, client *lens.ChainClient, db *sql.DB) *Indexer 
 	return &Indexer{
 		Client: client,
 		DB:     db,
-		log:    log.With(zap.String("indexer", fmt.Sprintf("atlas_%s_indexer", client.Config.ChainID))),
+		log:    log.With(zap.String("indexer", fmt.Sprintf("valis_%s_indexer", client.Config.ChainID))),
 	}
 }
 

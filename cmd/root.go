@@ -20,13 +20,13 @@ import (
 	"golang.org/x/term"
 )
 
-var defaultHome = filepath.Join(os.Getenv("HOME"), ".atlas")
+var defaultHome = filepath.Join(os.Getenv("HOME"), ".valis")
 
 const (
-	appName = "atlas"
+	appName = "valis"
 )
 
-// NewRootCmd returns the root command for atlas.
+// NewRootCmd returns the root command for valis.
 // If log is nil, a new zap.Logger is set on the app state
 // based on the command line flags regarding logging.
 func NewRootCmd(log *zap.Logger) *cobra.Command {
@@ -41,9 +41,9 @@ func NewRootCmd(log *zap.Logger) *cobra.Command {
 	// RootCmd represents the base command when called without any subcommands
 	var rootCmd = &cobra.Command{
 		Use:   appName,
-		Short: "atlas is an indexer for the interchain.",
+		Short: "valis is an indexer for the interchain.",
 		Long: strings.TrimSpace(`
-   Atlas is an indexer for the interchain.`),
+   valis is an indexer for the interchain.`),
 	}
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
@@ -128,7 +128,7 @@ func Execute() {
 		// But if a case is reached, panic so that we get a non-zero exit and a dump of remaining goroutines.
 		select {
 		case <-time.After(time.Minute):
-			panic(errors.New("atlas did not shut down within one minute of interrupt"))
+			panic(errors.New("valis did not shut down within one minute of interrupt"))
 		case sig := <-sigCh:
 			panic(fmt.Errorf("received signal %v; forcing quit", sig))
 		}
@@ -156,7 +156,7 @@ func newRootLogger(format string, debug bool) (*zap.Logger, error) {
 		enc = zaplogfmt.NewEncoder(config)
 	case "auto":
 		if term.IsTerminal(int(os.Stderr.Fd())) {
-			// When a user runs atlas in the foreground, use easier to read output.
+			// When a user runs valis in the foreground, use easier to read output.
 			enc = zapcore.NewConsoleEncoder(config)
 		} else {
 			// Otherwise, use consistent logfmt format for simplistic machine processing.

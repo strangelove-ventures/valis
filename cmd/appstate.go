@@ -35,6 +35,6 @@ func (a *appState) OverwriteConfig(cfg *Config) error {
 	}
 
 	a.Config = cfg
-	a.Log.Info("Updated lens configuration", zap.String("path", cfgPath))
+	a.Log.Info("Updated valis configuration", zap.String("path", cfgPath))
 	return nil
 }
