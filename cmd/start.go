@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/strangelove-ventures/valis/internal/indexdebug"
 	"go.uber.org/zap"
+	"gorm.io/gorm/logger"
 
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
@@ -38,6 +39,12 @@ $ %s st`, appName, appName)),
 				return fmt.Errorf("invalid flag value %d, value of --concurrent-blocks must be greater than or equal to 1", concurrentBlocks)
 			}
 
+			// Get the log level for gorm logging
+			logLevel, err := cmd.Flags().GetString(flagGormLogLevel)
+			if err != nil {
+				return nil
+			}
+
 			// Get the chain's config for the chain we are indexing
 			chainConfig, err := a.Config.GetChainConfig(args[0])
 			if err != nil {
@@ -58,7 +65,7 @@ $ %s st`, appName, appName)),
 			}
 
 			// Create the database connection
-			db, err := indexer.ConnectToDatabase(a.Config.DB.Driver, a.Config.ConnectionString())
+			db, err := indexer.ConnectToDatabase(a.Config.ConnectionString(), gormLogLevel(logLevel))
 			if err != nil {
 				return err
 			}
@@ -106,16 +113,21 @@ $ %s st`, appName, appName)),
 				}
 			}
 
+			// Build the slice of block heights to be indexed
 			var blocks []int64
 			for i := beginBlock; i < endBlock; i++ {
 				blocks = append(blocks, i)
 			}
 
+			// Build a slice of the configured block actions
 			var actions []indexer.BlockAction
 			for _, name := range a.Config.Actions {
 				action, err := a.Config.GetBlockActionByName(a.Log, name)
 				if err != nil {
-					a.Log.Info("Failed to get block action", zap.String("block_action_name", name))
+					a.Log.Info(
+						"Failed to get block action",
+						zap.String("block_action_name", name),
+					)
 					continue
 				}
 				actions = append(actions, action)
@@ -125,13 +137,36 @@ $ %s st`, appName, appName)),
 				return fmt.Errorf("no block actions configured, check the actions section of your config")
 			}
 
+			// Migrate the database schemas for configured actions
+			for _, action := range actions {
+				if err = action.MigrateSchema(i); err != nil {
+					return err
+				}
+			}
+
 			// Run the indexer
 			if err := i.ForEachBlock(ctx, blocks, actions, concurrentBlocks); err != nil {
 				return err
 			}
-
 			return nil
 		},
 	}
-	return debugServerFlags(a.Viper, beginBlockFlag(a.Viper, endBlockFlag(a.Viper, concurrentBlocksFlag(a.Viper, cmd))))
+	return gormLogFlag(a.Viper, debugServerFlags(a.Viper, beginBlockFlag(a.Viper, endBlockFlag(a.Viper, concurrentBlocksFlag(a.Viper, cmd)))))
+}
+
+// gormLogLevel returns a logger.LogLevel used to indicate the log level that gorm should use.
+// The default log level is silent in the case that the user passes in an invalid string.
+func gormLogLevel(logLevel string) logger.LogLevel {
+	switch {
+	case logLevel == "warn":
+		return logger.Warn
+	case logLevel == "info":
+		return logger.Info
+	case logLevel == "error":
+		return logger.Error
+	case logLevel == "silent":
+		return logger.Silent
+	default:
+		return logger.Silent
+	}
 }

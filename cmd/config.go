@@ -45,7 +45,6 @@ type DatabaseConfig struct {
 	Password string `yaml:"password" json:"password"`
 	Name     string `yaml:"db-name" json:"db-name"`
 	SSLMode  string `yaml:"ssl-mode" json:"ssl-mode"`
-	Driver   string `yaml:"driver" json:"driver"`
 }
 
 // configInitCmd initializes an empty config at the location specified via the --home flag.
@@ -218,7 +217,7 @@ func initConfig(cmd *cobra.Command, a *appState) error {
 	return nil
 }
 
-// AddChainConfig adds a chain config to the applications Config.
+// AddChainConfig adds a chain config to the Config.
 func (c *Config) AddChainConfig(chainConfig *lens.ChainClientConfig) (err error) {
 	if chainConfig.ChainID == "" {
 		return fmt.Errorf("chainConfig ID cannot be empty")
@@ -251,12 +250,11 @@ func defaultConfig() []byte {
 			Password: "password123",
 			Name:     "valis",
 			SSLMode:  "disable",
-			Driver:   "postgres",
 		}}.MustYAML()
 }
 
-// ConnectionString returns a string used in connecting to the database,
-// the string is created with the database connection details from the Config's DatabaseConfig.
+// ConnectionString returns a string used in connecting to the database.
+// The string is created with the database connection details from the Config's DatabaseConfig.
 func (c *Config) ConnectionString() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		c.DB.Host, c.DB.Port, c.DB.User, c.DB.Password, c.DB.Name, c.DB.SSLMode)

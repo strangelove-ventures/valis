@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sync"
 	"time"
@@ -10,6 +9,9 @@ import (
 	"github.com/avast/retry-go/v4"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	lens "github.com/strangelove-ventures/lens/client"
 	"go.uber.org/zap"
@@ -28,19 +30,19 @@ var (
 // performing some actions for each block.
 type Indexer struct {
 	Client *lens.ChainClient
-	DB     *sql.DB
+	DB     *gorm.DB
 
 	log *zap.Logger
 }
 
-// BlockAction represents a set of actions to be taken, on a per block basis, as the Indexer processes blocks.
+// BlockAction represents a set of actions to be taken, on a per-block basis, as the Indexer processes blocks.
 type BlockAction interface {
 	Name() string
-	CreateTables(indexer *Indexer) error
+	MigrateSchema(indexer *Indexer) error
 	Execute(ctx context.Context, indexer *Indexer, block *coretypes.ResultBlock) error
 }
 
-func NewIndexer(log *zap.Logger, client *lens.ChainClient, db *sql.DB) *Indexer {
+func NewIndexer(log *zap.Logger, client *lens.ChainClient, db *gorm.DB) *Indexer {
 	return &Indexer{
 		Client: client,
 		DB:     db,
@@ -58,7 +60,10 @@ func (i *Indexer) ForEachBlock(ctx context.Context, blocks []int64, actions []Bl
 		eg, egCtx    = errgroup.WithContext(ctx)
 	)
 
-	i.log.Info("Starting block queries", zap.String("chain_id", i.Client.Config.ChainID))
+	i.log.Info(
+		"Starting block queries",
+		zap.String("chain_id", i.Client.Config.ChainID),
+	)
 
 	for _, h := range blocks {
 		h := h
@@ -73,7 +78,8 @@ func (i *Indexer) ForEachBlock(ctx context.Context, blocks []int64, actions []Bl
 				block, err = i.Client.RPCClient.Block(egCtx, &h)
 				return err
 			}, retry.Context(egCtx), RtyAtt, RtyDel, RtyErr, retry.DelayType(retry.BackOffDelay), retry.OnRetry(func(n uint, err error) {
-				i.log.Info("Failed to get block",
+				i.log.Info(
+					"Failed to get block",
 					zap.Int64("height", h),
 					zap.Uint("attempt", n),
 					zap.Error(err),
@@ -94,7 +100,8 @@ func (i *Indexer) ForEachBlock(ctx context.Context, blocks []int64, actions []Bl
 			for _, a := range actions {
 				if err := a.Execute(egCtx, i, block); err != nil {
 					// TODO how to handle actions failing to execute properly
-					i.log.Warn("Failed to execute block action properly",
+					i.log.Warn(
+						"Failed to execute block action properly",
 						zap.String("block_action_name", a.Name()),
 						zap.Int64("block_height", block.Block.Height),
 						zap.Error(err),
@@ -118,14 +125,17 @@ func (i *Indexer) ForEachBlock(ctx context.Context, blocks []int64, actions []Bl
 }
 
 // ConnectToDatabase attempts to connect to the database using the specified driver and connection string.
-// If a connection cannot be established an error is returned.
-func ConnectToDatabase(driver, connString string) (*sql.DB, error) {
-	db, err := sql.Open(driver, connString)
+// If a connection cannot be established an error is returned. gormSilent will disable gorm logging if true.
+func ConnectToDatabase(connString string, gormLogLevel logger.LogLevel) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  connString,
+		PreferSimpleProtocol: true,
+	}), &gorm.Config{
+		Logger: logger.Default.LogMode(gormLogLevel),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to open db, ensure db server is running & check conn string: %w", err)
+		return nil, fmt.Errorf("failed to initalize db session, ensure db server is running & check conn string: %w", err)
 	}
-	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to connect to db, ensure db server is running & check conn string: %w", err)
-	}
+
 	return db, nil
 }

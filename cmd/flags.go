@@ -13,15 +13,17 @@ const (
 	flagBeginBlock       = "begin-block"
 	flagEndBlock         = "end-block"
 	flagFile             = "file"
+	flagGormLogLevel     = "gorm-log-level"
 )
 
 const (
 	defaultDebugAddr        = "localhost:49666"
 	defaultConcurrentBlocks = 100
 	defaultBeginBlock       = 1
-	defaultEndBlock         = 0 // This will enable default behavior of using latest block height
+	defaultEndBlock         = 0 // This will enable default behavior of using the latest block height
 	defaultJSON             = false
 	defaultYAML             = false
+	defaultGormLogLevel     = "silent"
 )
 
 func yamlFlag(v *viper.Viper, cmd *cobra.Command) *cobra.Command {
@@ -75,6 +77,14 @@ func endBlockFlag(v *viper.Viper, cmd *cobra.Command) *cobra.Command {
 func fileFlag(v *viper.Viper, cmd *cobra.Command) *cobra.Command {
 	cmd.Flags().StringP(flagFile, "f", "", "fetch json data from specified file")
 	if err := v.BindPFlag(flagFile, cmd.Flags().Lookup(flagFile)); err != nil {
+		panic(err)
+	}
+	return cmd
+}
+
+func gormLogFlag(v *viper.Viper, cmd *cobra.Command) *cobra.Command {
+	cmd.Flags().StringP(flagGormLogLevel, "l", defaultGormLogLevel, "gorm log level. Valid values are silent, error, warn, and info.")
+	if err := v.BindPFlag(flagGormLogLevel, cmd.Flags().Lookup(flagGormLogLevel)); err != nil {
 		panic(err)
 	}
 	return cmd

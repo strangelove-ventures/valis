@@ -15,8 +15,8 @@ import (
 //       the name parameter matches the value returned by BlockAction.Name()
 func (c *Config) GetBlockActionByName(log *zap.Logger, name string) (indexer.BlockAction, error) {
 	switch name {
-	case "ics20_transfers":
-		return ibc.NewIBCTransfer(log), nil
+	case ibc.BlockActionName:
+		return ibc.NewIBCTransfer(log.With(zap.String("block_action", ibc.BlockActionName))), nil
 	default:
 		return nil, fmt.Errorf("there is no block action configured with the name %s", name)
 	}
