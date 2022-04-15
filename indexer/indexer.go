@@ -69,6 +69,14 @@ func (i *Indexer) ForEachBlock(ctx context.Context, blocks []int64, actions []Bl
 		h := h
 		sem <- struct{}{}
 
+		// Check if the context has been cancelled on each iteration
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Millisecond * 100):
+			// continue
+		}
+
 		eg.Go(func() error {
 			var block *coretypes.ResultBlock
 

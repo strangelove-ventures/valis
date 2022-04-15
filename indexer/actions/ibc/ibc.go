@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
@@ -47,6 +48,15 @@ func (a *IBCTransfer) Execute(ctx context.Context, indexer *indexer.Indexer, blo
 // any ics-20 Msg related data into a postgres database instance.
 func (a *IBCTransfer) IndexIBCTransfers(ctx context.Context, indexer *indexer.Indexer, block *coretypes.ResultBlock) error {
 	for index, tx := range block.Block.Data.Txs {
+
+		// Check if the context has been cancelled on each iteration
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Millisecond * 100):
+			// continue
+		}
+
 		sdkTx, err := indexer.Client.Codec.TxConfig.TxDecoder()(tx)
 		if err != nil {
 			// TODO application specific txs fail here (e.g. Osmosis Msgs, GDEX swaps, Akash deployments, etc.)
@@ -80,6 +90,7 @@ func (a *IBCTransfer) IndexIBCTransfers(ctx context.Context, indexer *indexer.In
 			continue
 		}
 
+		// Set the appropriate fee values if they exist
 		fee := sdkTx.(sdk.FeeTx)
 		var feeAmount, feeDenom string
 		if len(fee.GetFee()) == 0 {
@@ -111,23 +122,44 @@ func (a *IBCTransfer) IndexIBCTransfers(ctx context.Context, indexer *indexer.In
 				zap.Int("total_txs", len(block.Block.Data.Txs)),
 				zap.Error(err),
 			)
+			continue
 		}
 		if err = dbTx.Timestamp.Set(block.Block.Time); err != nil {
-			panic(err)
+			a.log.Warn(
+				"Failed to set block time on Tx model",
+				zap.Int64("height", block.Block.Height),
+				zap.String("tx_hash", string(tx.Hash())),
+				zap.Time("block_time", block.Block.Time),
+				zap.Int("tx_index", index+1),
+				zap.Int("total_txs", len(block.Block.Data.Txs)),
+				zap.Error(err),
+			)
+			continue
 		}
 
+		// If the TxResult contains errors build a valid JSON string with the error message
 		rawLog := txRes.TxResult.Log
 		if txRes.TxResult.Code > 0 {
 			rawLog = fmt.Sprintf("{\"error\":\"%s\"}", txRes.TxResult.Log)
 		}
 
 		if err = dbTx.RawLog.Set(rawLog); err != nil {
-			panic(err)
+			a.log.Warn(
+				"Failed to set raw log on Tx model",
+				zap.Int64("height", block.Block.Height),
+				zap.String("tx_hash", string(tx.Hash())),
+				zap.String("raw_log", rawLog),
+				zap.Int("tx_index", index+1),
+				zap.Int("total_txs", len(block.Block.Data.Txs)),
+				zap.Error(err),
+			)
+			continue
 		}
 
 		result := indexer.DB.Create(dbTx)
 		a.LogTxInsertion(result.Error, index, len(sdkTx.GetMsgs()), len(block.Block.Data.Txs), block.Block.Height)
 
+		// Parse the msgs in the tx
 		for msgIndex, msg := range sdkTx.GetMsgs() {
 			a.HandleIBCMsg(indexer, msg, msgIndex, block.Block.Height, tx.Hash())
 		}
