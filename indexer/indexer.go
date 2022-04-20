@@ -96,7 +96,7 @@ func (i *Indexer) ForEachBlock(ctx context.Context, blocks []int64, actions []Bl
 				// If we fail to get a block add it to the slice of failed blocks
 				func() {
 					mutex.Lock()
-					defer mutex.Lock()
+					defer mutex.Unlock()
 					failedBlocks = append(failedBlocks, h)
 				}()
 
