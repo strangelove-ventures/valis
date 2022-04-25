@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/strangelove-ventures/valis/indexer"
+	"github.com/strangelove-ventures/valis/indexer/actions/daodao"
 	"github.com/strangelove-ventures/valis/indexer/actions/ibc"
 	"go.uber.org/zap"
 )
@@ -17,6 +18,8 @@ func (c *Config) GetBlockActionByName(log *zap.Logger, name string) (indexer.Blo
 	switch name {
 	case ibc.BlockActionName:
 		return ibc.NewIBCTransfer(log.With(zap.String("block_action", ibc.BlockActionName))), nil
+	case daodao.BlockActionName:
+		return daodao.NewDAODAOAction(log.With(zap.String("block_action", daodao.BlockActionName))), nil
 	default:
 		return nil, fmt.Errorf("there is no block action configured with the name %s", name)
 	}

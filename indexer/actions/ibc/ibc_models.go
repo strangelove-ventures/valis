@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgtype"
-	"github.com/strangelove-ventures/valis/indexer"
 )
 
 // Tx represents a single tx, which can contain many messages.
@@ -73,19 +72,8 @@ type MsgTimeout struct {
 	DstPort    string       `gorm:"not null"`
 }
 
-// MigrateSchema runs schema migrations for the specified models.
-func (a *IBCTransfer) MigrateSchema(indexer *indexer.Indexer) error {
-	return indexer.DB.AutoMigrate(
-		&Tx{},
-		&MsgTransfer{},
-		&MsgRecvPacket{},
-		&MsgAcknowledgement{},
-		&MsgTimeout{},
-	)
-}
-
 /*
-func (a *IBCTransfer) GetLastStoredBlock(indexer *indexer.Indexer, chainId string) (int64, error) {
+func (a *IBCTransferAction) GetLastStoredBlock(indexer *indexer.Indexer, chainId string) (int64, error) {
 	var height int64
 	if err := indexer.DB.QueryRow("SELECT MAX(block_height) FROM txs WHERE chainid=$1", chainId).Scan(&height); err != nil {
 		return 1, err
