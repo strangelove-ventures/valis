@@ -19,34 +19,45 @@ import (
 // these names are read when starting the indexer for building the list of actions to take at runtime.
 const BlockActionName = "ics20_transfers"
 
-// IBCTransfer implements the indexer.BlockAction interface, it describes the appropriate actions to take in order
+// IBCTransferAction implements the indexer.BlockAction interface, it describes the appropriate actions to take in order
 // to parse the ics-20 transfer data on-chain and index it into a database instance.
-type IBCTransfer struct {
+type IBCTransferAction struct {
 	actionName string
 	log        *zap.Logger
 }
 
-// NewIBCTransfer returns a new IBCTransfer block action to be used by the indexer.
-func NewIBCTransfer(log *zap.Logger) *IBCTransfer {
-	return &IBCTransfer{
+// NewIBCTransfer returns a new IBCTransferAction block action to be used by the indexer.
+func NewIBCTransfer(log *zap.Logger) *IBCTransferAction {
+	return &IBCTransferAction{
 		actionName: BlockActionName,
 		log:        log,
 	}
 }
 
 // Name returns the block action name for identifying this action.
-func (a *IBCTransfer) Name() string {
+func (a *IBCTransferAction) Name() string {
 	return a.actionName
 }
 
+// MigrateSchema runs schema migrations for the specified models.
+func (a *IBCTransferAction) MigrateSchema(indexer *indexer.Indexer) error {
+	return indexer.DB.AutoMigrate(
+		&Tx{},
+		&MsgTransfer{},
+		&MsgRecvPacket{},
+		&MsgAcknowledgement{},
+		&MsgTimeout{},
+	)
+}
+
 // Execute calls the appropriate functions needed for properly parsing data related to IBC fungible token transfers.
-func (a *IBCTransfer) Execute(ctx context.Context, indexer *indexer.Indexer, block *coretypes.ResultBlock) error {
+func (a *IBCTransferAction) Execute(ctx context.Context, indexer *indexer.Indexer, block *coretypes.ResultBlock) error {
 	return a.IndexIBCTransfers(ctx, indexer, block)
 }
 
 // IndexIBCTransfers parses the tx data in the specified block and indexes the tx data along with
 // any ics-20 Msg related data into a postgres database instance.
-func (a *IBCTransfer) IndexIBCTransfers(ctx context.Context, indexer *indexer.Indexer, block *coretypes.ResultBlock) error {
+func (a *IBCTransferAction) IndexIBCTransfers(ctx context.Context, indexer *indexer.Indexer, block *coretypes.ResultBlock) error {
 	for index, tx := range block.Block.Data.Txs {
 
 		// Check if the context has been cancelled on each iteration
@@ -168,7 +179,7 @@ func (a *IBCTransfer) IndexIBCTransfers(ctx context.Context, indexer *indexer.In
 }
 
 // LogTxInsertion appropriately logs a successful or failed attempt to write a tx to the database instance.
-func (a *IBCTransfer) LogTxInsertion(err error, msgIndex, msgCount, txCount int, height int64) {
+func (a *IBCTransferAction) LogTxInsertion(err error, msgIndex, msgCount, txCount int, height int64) {
 	if err != nil {
 		a.log.Warn(
 			"Failed to write tx to database.",
@@ -192,7 +203,7 @@ func (a *IBCTransfer) LogTxInsertion(err error, msgIndex, msgCount, txCount int,
 
 // HandleIBCMsg checks if the specified sdk.Msg is a MsgTransfer, MsgRecvPacket, MsgTimeout or MsgAcknowledgement
 // and if so it attempts to index the msg data into the database instance.
-func (a *IBCTransfer) HandleIBCMsg(indexer *indexer.Indexer, msg sdk.Msg, msgIndex int, height int64, hash []byte) {
+func (a *IBCTransferAction) HandleIBCMsg(indexer *indexer.Indexer, msg sdk.Msg, msgIndex int, height int64, hash []byte) {
 	switch m := msg.(type) {
 	case *transfertypes.MsgTransfer:
 		transfer := &MsgTransfer{
